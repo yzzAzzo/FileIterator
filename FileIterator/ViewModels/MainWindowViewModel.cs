@@ -1,25 +1,28 @@
 ﻿using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Windows.Input;
 using FileIterator.Helpers;
+using FileIterator.Interfaces;
 
 namespace FileIterator.ViewModels;
 
 public class MainWindowViewModel : PropertyChangedBase
 {
-    private string _path;
+    private const byte KEY = 0x1F;
+    private ISimpleSymmetricEncriptor _encriptor;
 
     public ObservableCollection<string> ExtensionsToEncryptCollection { get; set; }
-    
 
-    public string Path
+    private string _directoryPath;
+    public string DirectoryPath
     {
-        get { return _path; }
+        get { return _directoryPath; }
         set
         {
-            _path = value;
+            _directoryPath = value;
             OnPropertyChanged();
         }
     }
@@ -76,33 +79,28 @@ public class MainWindowViewModel : PropertyChangedBase
         }
     }
 
-	public MainWindowViewModel()
+	public MainWindowViewModel(ISimpleSymmetricEncriptor encriptor)
     {
-        _path = @"E:\Jedi Survivor"; /* Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);*/
-        ExtensionsToEncryptCollection = new ObservableCollection<string>();
+        _encriptor = encriptor;
+        _directoryPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        ExtensionsToEncryptCollection = new ObservableCollection<string>{".txt"};
     }
 
-   
-
     /// <summary>
-    /// Opens a Folder Dialog and saves the result to .
+    /// Opens a Folder Dialog and saves the result to _directoryPath.
     /// </summary>
     private void ExecuteOpenFileDialog(object parameter)
     {
-        // Configure open folder dialog box
         Microsoft.Win32.OpenFolderDialog dialog = new();
 
         dialog.Multiselect = false;
         dialog.Title = "Select a folder";
 
-        // Show open folder dialog box
         bool? result = dialog.ShowDialog();
 
-        // Process open folder dialog box results
         if (result == true)
         {
-            // Get the selected folder
-            _path = dialog.FolderName;
+            DirectoryPath = dialog.FolderName;
         }
     }
 
@@ -129,8 +127,7 @@ public class MainWindowViewModel : PropertyChangedBase
 
     private async Task ExecuteTraverseDictionariesAsync()
     {
-        // Perform file system traversal asynchronously
-        await Task.Run(() => TraverseDirectories(_path));
+        await Task.Run(() => TraverseDirectories(_directoryPath));
 
         Trace.WriteLine("File system walk-through completed.");
     }
@@ -138,7 +135,12 @@ public class MainWindowViewModel : PropertyChangedBase
     private void TraverseDirectories(string path)
     {
         BlockingQueue<string> directories = new BlockingQueue<string>();
-        var threads = new Thread[Environment.ProcessorCount];
+
+        //setting thread number above the actual physical core count wouldn't result in performance benefits when it comes to I/O tasks so limit it.
+        int maxThreads = int.TryParse(ConfigurationManager.AppSettings["MaxThreads"], out int result) 
+                         && result <= Environment.ProcessorCount ? result : Environment.ProcessorCount;
+
+        var threads = new Thread[maxThreads];
 
         for (int i = 0; i < threads.Length; i++)
         {
@@ -159,31 +161,31 @@ public class MainWindowViewModel : PropertyChangedBase
         while (true)
         {
             string directory;
-            // Dequeue a directory to process
+            
             if (!directories.TryDequeue(out directory))
-                return; // No more directories to process
+                return; 
 
-            // Process files in the current directory
-            //TODO EnumerateFiles instead
             string[] files = Directory.GetFiles(directory);
+
             foreach (string file in files)
             {
                 Trace.WriteLine("Processing file: " + file);
 
                 var bytes = File.ReadAllBytes(file);
 
-                //TODO put this key somewhere.
-                byte key = 0x1F;
+                if (ExtensionsToEncryptCollection.Contains(Path.GetExtension(file)))
+                {
+                    byte[] encryptedData = _encriptor.DoCipher(bytes, KEY);
 
-                byte[] encryptedData = XOREncryptor.DoCipher(bytes,key);
-
-                // Process the file as needed
+                    //We overwrite so we won't flood with files every time we do an encrypt/decrypt.
+                    File.WriteAllBytes(file, encryptedData); 
+                }
             }
 
-            // Enqueue subdirectories for further processing
+            // queue subdirectories for further processing
             string[] subDirectories = Directory.GetDirectories(directory);
 
-            //Return because otherview deadlock waiting for pulse
+            //Return because otherwise deadlock waiting for pulse
             if (!subDirectories.Any())
             {
                 return;
@@ -193,37 +195,6 @@ public class MainWindowViewModel : PropertyChangedBase
             {
                 directories.Enqueue(subDir);
             }
-        }
-    }
-}
-
-
-// BlockingQueue implementation for thread-safe queue operations
-public class BlockingQueue<T>
-{
-    private readonly Queue<T> _queue = new ();
-    private readonly object _syncRoot = new ();
-
-    public void Enqueue(T item)
-    {
-        lock (_syncRoot)
-        {
-            _queue.Enqueue(item);
-            Monitor.Pulse(_syncRoot);
-        }
-    }
-
-    public bool TryDequeue(out T result)
-    {
-        lock (_syncRoot)
-        {
-            while (_queue.Count == 0)
-            {
-                Monitor.Wait(_syncRoot);
-            }
-
-            result = _queue.Dequeue();
-            return true;
         }
     }
 }

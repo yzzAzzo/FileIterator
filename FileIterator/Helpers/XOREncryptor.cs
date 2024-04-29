@@ -1,8 +1,10 @@
-﻿namespace FileIterator.Helpers;
+﻿using FileIterator.Interfaces;
 
-public static class XOREncryptor
+namespace FileIterator.Helpers;
+
+public class XOREncryptor : ISimpleSymmetricEncriptor
 {
-    public static byte[] DoCipher(byte[] data, byte key)
+    public byte[] DoCipher(byte[] data, byte key)
     {
         byte[] cipheredData = new byte[data.Length];
 
@@ -13,6 +15,4 @@ public static class XOREncryptor
 
         return cipheredData;
     }
-
-    
 }

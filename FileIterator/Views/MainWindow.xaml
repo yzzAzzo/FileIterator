@@ -6,13 +6,24 @@
         xmlns:local="clr-namespace:FileIterator.Views"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+
+    <Window.Resources>
+        <Style x:Key="BorderStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="Black"></Setter>
+            <Setter Property="BorderThickness" Value="2"></Setter>
+            <Setter Property="Margin" Value="5"></Setter>
+            <Setter Property="Padding" Value="2"></Setter>
+            <Setter Property="CornerRadius" Value="2"></Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Border BorderBrush="Black" BorderThickness="2" MaxWidth="250" HorizontalAlignment="Left" Margin="5" Padding="2">
+        <Border Style="{StaticResource BorderStyle}" MaxWidth="250" HorizontalAlignment="Left">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -25,22 +36,24 @@
 
                 <Button Grid.Column="0" Grid.Row="0" Content="ChooseRoot" Command="{Binding OpenFolderDialogCommand}" Margin="1"></Button>
                 <Button Grid.Column="1" Grid.Row="0" Content="Traverse" Command="{Binding TraverseDictionariesCommand}" Margin="1"></Button>
-                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="E:\BF2\STAR WARS Battlefront II\Data"></TextBlock>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="{Binding DirectoryPath}"></TextBlock>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Margin="5,2,5,0" BorderBrush="Black" BorderThickness="2" Padding="2" MaxWidth="250" HorizontalAlignment="Left">
+        <Border Grid.Row="1" Style="{StaticResource BorderStyle}" HorizontalAlignment="Left">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" >
-                    <TextBox x:Name="TextToAddTextBox"  Margin="2,1" Text="Write extension here (.txt)"></TextBox>
+                <Label Grid.Row="0" FontWeight="Bold" Content="Files with these extensions will be encrypted"></Label>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" >
+                    <TextBox x:Name="TextToAddTextBox"  Margin="2,1" Text="Write extension here (.txt)" MinWidth="50"></TextBox>
                     <Button Margin="2,1" Content="Add" Command="{Binding AddCommand}" CommandParameter="{Binding Text, ElementName=TextToAddTextBox}"></Button>
                     <Button Margin="2,1" Content="Delete" Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedItem, ElementName=ExtensionListView}"></Button>
                 </StackPanel>
-                <ListView x:Name="ExtensionListView" Margin="2,1" Grid.Row="1" ItemsSource="{Binding ExtensionsToEncryptCollection}">
+                <ListView x:Name="ExtensionListView" Grid.Row="2" Margin="2,1"  ItemsSource="{Binding ExtensionsToEncryptCollection}">
         
                 </ListView>
             </Grid>
