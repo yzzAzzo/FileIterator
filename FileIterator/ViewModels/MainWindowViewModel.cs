@@ -154,7 +154,7 @@ public class MainWindowViewModel : PropertyChangedBase
         }
     }
 
-    static void ProcessDirectories(BlockingQueue<string> directories)
+    private void ProcessDirectories(BlockingQueue<string> directories)
     {
         while (true)
         {
@@ -169,6 +169,14 @@ public class MainWindowViewModel : PropertyChangedBase
             foreach (string file in files)
             {
                 Trace.WriteLine("Processing file: " + file);
+
+                var bytes = File.ReadAllBytes(file);
+
+                //TODO put this key somewhere.
+                byte key = 0x1F;
+
+                byte[] encryptedData = XOREncryptor.DoCipher(bytes,key);
+
                 // Process the file as needed
             }
 
@@ -188,6 +196,7 @@ public class MainWindowViewModel : PropertyChangedBase
         }
     }
 }
+
 
 // BlockingQueue implementation for thread-safe queue operations
 public class BlockingQueue<T>
