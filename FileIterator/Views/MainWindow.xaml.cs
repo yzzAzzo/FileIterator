@@ -1,5 +1,6 @@
 ﻿using System.Windows;
-using FileIterator.Helpers;
+using FileIterator.Interfaces;
+using FileIterator.Models;
 using FileIterator.ViewModels;
 
 namespace FileIterator.Views
@@ -12,7 +13,7 @@ namespace FileIterator.Views
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel(new XOREncryptor());
+            DataContext = new MainWindowViewModel(new FileEncriptor(new XOREncryptor()), new DictionaryTraverser());
         }
     }
 }

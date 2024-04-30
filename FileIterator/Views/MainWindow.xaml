@@ -8,6 +8,8 @@
         Title="MainWindow" Height="450" Width="800">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></BooleanToVisibilityConverter>
+
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="BorderBrush" Value="Black"></Setter>
             <Setter Property="BorderThickness" Value="2"></Setter>
@@ -35,8 +37,8 @@
                 </Grid.RowDefinitions>
 
                 <Button Grid.Column="0" Grid.Row="0" Content="ChooseRoot" Command="{Binding OpenFolderDialogCommand}" Margin="1"></Button>
-                <Button Grid.Column="1" Grid.Row="0" Content="Traverse" Command="{Binding TraverseDictionariesCommand}" Margin="1"></Button>
-                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="{Binding DirectoryPath}"></TextBlock>
+                <Button Grid.Column="1" Grid.Row="0" Content="Encrypt" Command="{Binding TraverseDictionariesCommand}" IsEnabled="{Binding TraverseComplete}" Margin="1"></Button>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="{Binding RootPath}"></TextBlock>
             </Grid>
         </Border>
 
