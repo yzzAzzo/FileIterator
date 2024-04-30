@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Configuration;
 using System.IO;
+using System.Windows;
 using FileIterator.Interfaces;
 
 namespace FileIterator.Models;
@@ -35,6 +36,10 @@ public class DictionaryTraverser : ITraverser
                         {
                             directories.Enqueue(subDirectory);
                         }
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        MessageBox.Show("You don't have permission to perform this operation. Please contact your system administrator.", "Unauthorized Access", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     catch (Exception e)
                     {

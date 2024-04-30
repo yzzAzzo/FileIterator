@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
 
 namespace FileIterator.Models;
 
@@ -31,6 +32,10 @@ public class FileEncriptor : IFileProcessor
                 byte[] encryptedData = _encriptor.DoCipher(bytes, KEY);
                 File.WriteAllBytes(filePath, encryptedData);
             }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            MessageBox.Show("You don't have permission to perform this operation. Please contact your system administrator.", "Unauthorized Access", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch (Exception e)
         {

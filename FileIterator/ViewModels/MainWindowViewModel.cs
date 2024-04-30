@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Windows;
 using System.Windows.Input;
 using FileIterator.Helpers;
 using FileIterator.Interfaces;
@@ -103,12 +104,23 @@ public class MainWindowViewModel : PropertyChangedBase
 
     private async Task ProcessDirectories(string dictionaryPath)
     {
-        await Task.Run(() =>
+        try
         {
-            foreach (string filePath in Directory.EnumerateFiles(dictionaryPath))
+            await Task.Run(() =>
             {
-                _fileProcessor.ProcessFile(filePath, ExtensionsToEncryptCollection);
-            }
-        });
+                foreach (string filePath in Directory.EnumerateFiles(dictionaryPath))
+                {
+                    _fileProcessor.ProcessFile(filePath, ExtensionsToEncryptCollection);
+                }
+            });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show("You don't have permission to perform this operation. Restart under administrator.", "Unauthorized Access", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown(); 
+            });
+        }
     }
 }
