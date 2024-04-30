@@ -1,14 +1,10 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
-using System.Configuration;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using FileIterator.Helpers;
 using FileIterator.Interfaces;
-using FileIterator.Models;
 
 namespace FileIterator.ViewModels;
 
